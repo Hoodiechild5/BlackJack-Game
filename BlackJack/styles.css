@@ -1,0 +1,51 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#dealer-hand,
+#player-hand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  width: 100px;
+  height: 150px;
+  margin-right: 10px;
+  border: 1px solid black;
+  background-color: whitesmoke;
+  border-radius: 5px;
+}
+
+#buttons {
+  display: flex;
+  justify-content: center;
+}
+
+#hit-button {
+  margin-right: 10px;
+}
+
+h2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: black;
+}
+
+
+body {
+  background-color: rgba(0, 104, 0, 1);
+  color: rgba(0, 104, 0, 1);
+}
+
+
