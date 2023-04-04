@@ -167,7 +167,6 @@ function scoreHand(hand) {
     }
   }
   return total;
-
 }
 
 function updateView(gameData){
@@ -204,7 +203,6 @@ function updateView(gameData){
 
   }else if (currentState === 'dealerWin'){
   }
-
 }
 
 let stateMechine = {
@@ -217,8 +215,6 @@ let stateMechine = {
     this.currentStateName = gameData.currentState;
   },
 };
-
-
 
 // adding even listenr
 
@@ -239,7 +235,6 @@ document.addEventListener("DOMContentLoaded", function(){
     const  betAmount = document.getElementById('bet-amount')
     const bet = betAmount.value
     stateMechine.nextState({ bet });
-
 
     updateView(gameData);
   })
