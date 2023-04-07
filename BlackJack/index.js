@@ -1,7 +1,7 @@
 let gameData = {
   currentState: "start",
   currentBet: 0,
-  bank: 1000,
+  bank: 2500,
   playerHand: [],
   dealerHand: [],
   deck: [],
@@ -11,37 +11,49 @@ let gameData = {
 };
 let states = [
   {
-    name: "start",
+    name: "start", 
+    enter: (data) => {
+      data.deck = createDeck();
+      data.currentState = 'start'
+    },
     next: (data) => {
       // setting current state to deal
       data.currentState = "bet";
-      data.deck = createDeck();
+
     },
   },
   {
     name: "bet",
-    next: (data, { bet }) => {
-      data.currentState = "dealerDeal";
+    enter: (data, { bet }) => {
       data.currentBet = bet;
       data.bank -= bet;
+    },
+    next: (data) => {
+      data.currentState = "dealerDeal";
     },
   },
   {
     name: "dealerDeal",
+    enter: (data) => {
+      deal(data.dealerHand, data.deck, true);
+    },
     next: (data) => {
       data.currentState = "playerDeal";
-      deal(data.dealerHand, data.deck, true);
     },
   },
   {
     name: "playerDeal",
+    enter: (data) => {
+      deal(data.playerHand, data.deck)
+    },
     next: (data) => {
       data.currentState = "compareHands";
-      deal(data.playerHand, data.deck);
+      debugger
     },
   },
   {
     name: "playerOption",
+    enter: () => {},
     next: (data, { hit }) => {
       if (hit) {
         data.currentState = "playerDeal";
@@ -52,6 +64,7 @@ let states = [
   },
   {
     name: "dealerOption",
+    enter: () => {},
     next: (data, { hit }) => {
       if (hit) {
         data.currentState = "playerDeal";
@@ -62,6 +75,7 @@ let states = [
   },
   {
     name: "compareHands",
+    enter: () => {},
     next: (data) => {
       let playerScore = scoreHand(data.playerHand);
       let dealerScore = scoreHand(data.dealerHand);
@@ -78,7 +92,6 @@ let states = [
         data.currentState = "dealerWin";
         data.currentBet = 0;
       } else if (dealerScore <= 17) {
-        //dealer hits
         data.currentState = "dealerDeal";
       } else {
         //player opition
@@ -89,22 +102,33 @@ let states = [
         data.currentBet = 0;
         data.currentState = "playerWin";
       }
+      if (dealerScore > 21 && playerScore > 21) {
+        // both bust dealer wins
+        console.log(
+          "Both the dealer and the player have busted. The dealer wins."
+        );
+        data.currentState = "dealerWin";
+        data.currentBet = 0;
+      }
     },
   },
   {
     name: "push",
+    enter: () => {},
     next: (data) => {
       data.currentState = "start";
     },
   },
   {
     name: "playerWin",
+    enter: () => {},
     next: (data) => {
       data.currentState = "start";
     },
   },
   {
     name: "dealerWin",
+    enter: () => {},
     next: (data) => {
       data.currentState = "start";
     },
@@ -169,44 +193,69 @@ function scoreHand(hand) {
   return total;
 }
 
-function updateView(gameData){
-  const startAreaEl = document.getElementById('start-game')
-  const betAreaEl = document.getElementById('bet')
-  const gameAreaEl = document.getElementById('game-board')
-  
-  startAreaEl.style.display = 'none'
-  betAreaEl.style.display = "none"
-  gameAreaEl.style.display = "none"
-  
-  
-  let {currentState} = gameData
-  if (currentState === 'start'){
-   startAreaEl.style.display = 'block'
-  }else if (currentState === 'bet'){
-    betAreaEl.style.display = 'block'
-  }else if (currentState === 'dealerDeal'){
-    gameAreaEl.style.display = "block"
 
-  }else if (currentState === 'playerDeal'){
-    gameAreaEl.style.display = "block"
+function updateView(gameData) {
+  const startAreaEl = document.getElementById("start-game");
+  const betAreaEl = document.getElementById("bet");
+  const gameAreaEl = document.getElementById("game-board");
+  const playerHandEl = document.getElementById("player-hand");
+  const dealerHandEl = document.getElementById("dealer-hand");
 
-  }else if (currentState === 'playerOption'){
-    gameAreaEl.style.display = "block"
+  startAreaEl.style.display = "none";
+  betAreaEl.style.display = "none";
+  gameAreaEl.style.display = "none";
+  debugger
 
-  }else if (currentState === 'compareHands'){
-    gameAreaEl.style.display = "block"
+  let { currentState, playerHand, dealerHand } = gameData;
+  if (currentState === "start") {
+    startAreaEl.style.display = "block";
+  } else if (currentState === "bet") {
+    betAreaEl.style.display = "block";
+  } else if (currentState === "dealerDeal") {
+    dealerHandEl.innerHTML = "";
+    handDeal(dealerHandEl, dealerHand);
+    gameAreaEl.style.display = "block";
+  } else if (currentState === "playerDeal") {
+    playerHandEl.innerHTML = "";
+    handDeal(playerHandEl, playerHand);
+    gameAreaEl.style.display = "block";
+  } else if (currentState === "playerOption") {
+    gameAreaEl.style.display = "block";
+  } else if (currentState === "compareHands") {
+    gameAreaEl.style.display = "block";
+  } else if (currentState === "push") {
+    gameAreaEl.style.display = "block";
+  } else if (currentState === "playerWin") {
+  } else if (currentState === "dealerWin") {
+  }
+}
 
-  }else if (currentState === 'push'){
-    gameAreaEl.style.display = "block"
-
-  }else if (currentState === 'playerWin'){
-
-  }else if (currentState === 'dealerWin'){
+function handDeal(cardContainer, hand) {
+  //Value: values[x], Suit: suits[i], hidden: true
+  const imageMap = hand.map((card) => {
+    let { Value, Suit, hidden } = card;
+    let Imagesuit = Suit.charAt(0).toUpperCase();
+    let imageVaule =
+      typeof Value === "string"
+        ? Value.charAt(0).toUpperCase()
+        : Value.toString();
+    return hidden ? "cards/BACK.png" : `cards/${imageVaule}-${Imagesuit}.png`;
+  });
+  for (let i = 0; i < imageMap.length; i++) {
+    let cardElemnt = document.createElement("img");
+    cardElemnt.src = imageMap[i];
+    cardContainer.appendChild(cardElemnt);
   }
 }
 
 let stateMechine = {
   currentStateName: states[0].name,
+  enter: (actions={}) => {
+    let stateName = this.currentStateName = gameData.currentState;
+    let currentStateObject = states.find((state) => state.name === stateName);
+    currentStateObject.enter(gameData, actions)
+    updateView(gameData)
+  },
   nextState: function (actions = {}) {
     let stateName = this.currentStateName;
     let currentStateObject = states.find((state) => state.name === stateName);
@@ -218,37 +267,39 @@ let stateMechine = {
 
 // adding even listenr
 
-document.addEventListener("DOMContentLoaded", function(){
-  const hitButton = document.getElementById('hit-button');
-  const standButton = document.getElementById('stand-button');
-  const betButton = document.getElementById('bet-button');
-  const startButton = document.getElementById('start-game');
+document.addEventListener("DOMContentLoaded", function () {
+  const hitButton = document.getElementById("hit-button");
+  const standButton = document.getElementById("stand-button");
+  const betButton = document.getElementById("bet-button");
+  const startButton = document.getElementById("start-game");
 
-  updateView(gameData) 
-  
+  updateView(gameData);
+  startButton.addEventListener("click", function () {
+    stateMechine.enter()
+    stateMechine.nextState();
+    updateView(gameData)
+  });
+  betButton.addEventListener("click", function () {
+    const betAmount = document.getElementById("bet-amount");
+    const bet = betAmount.value;
+    stateMechine.enter({ bet });
+    stateMechine.nextState()
+    stateMechine.enter()
+    stateMechine.nextState()
+    stateMechine.enter()
+    updateView(gameData)
+  });
 
-  startButton.addEventListener('click', function(){
+  hitButton.addEventListener("click", function () {
     stateMechine.nextState();
     updateView(gameData);
-  })
-  betButton.addEventListener('click', function(){
-    const  betAmount = document.getElementById('bet-amount')
-    const bet = betAmount.value
-    stateMechine.nextState({ bet });
+  });
 
+  standButton.addEventListener("click", function () {
+    hitButton.style.display = "none";
+    standButton.style.display = "none";
+
+    stateMechine.nextState();
     updateView(gameData);
-  })
-
-  hitButton.addEventListener('click', function(){
-
-  })
- 
-  standButton.addEventListener('click', function(){
-
-  })
-  
- 
-})
-
-
-
+  });
+});

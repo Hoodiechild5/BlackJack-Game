@@ -23,6 +23,7 @@
   justify-content: center;
 }
 
+
 #hit-button {
   margin-right: 10px;
   height: 50px;
@@ -43,9 +44,11 @@ h2 {
 }
 
 
-body {
-  background-color: rgba(0, 104, 0, 1);
-  color: rgba(0, 104, 0, 1);
+
+.bet-img{
+  height: 100px;
 }
 
-
+.front{
+  margin-right: 1000px;
+}
